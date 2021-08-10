@@ -1,95 +1,91 @@
 import pandas as pd
+from typing import List
 
-class Data:
-    def __init__(self):
-        self.df = None
 
-    def OpenFile(self, filePath: str):
+
+
+def openFile(filePath: str = None) -> pd.DataFrame:
+    df = None
+    if not filePath:
+        filePath = input('Enter the file path of the csv file:\n')
+    try:
+        df = pd.read_csv(filePath)
+    except Exception as ex:
+        print(str(ex))
+        print("Reenter file path before proceeding...\n")
+    return df
+
+
+def groupCols(df: pd.DataFrame, cols: List[str], axi: int = 0) -> pd.DataFrame:
+        grouped = None
         try:
-            self.df = pd.read_csv(filePath)
+            if len(cols) == 1:
+                df = df.groupby([cols[0]], axis=axi)
+            elif len(cols) == 2:
+                df = df.groupby([cols[0], cols[1]], axis=axi)
+            elif len(cols) == 3:
+                df = df.groupby([cols[0], cols[1], cols[2]], axis=axi)
+            else:
+                raise Exception("An error occurred, incorrect amount of columns.")
         except Exception as ex:
             print(str(ex))
-            print("Reenter file path before proceeding...\n")
-            return
+            print("Check that the columns are correct. If unsure, call option 3.\n")
+        return df
 
-    def Head(self, coun: int = 0):
-        if coun == 0:
-            print(self.df.head())
-            return
-        print(self.df.head(coun))
 
-    def Info(self):
-        print(self.df.info())
-
-    def GroupCols(self, col1: str, col2: str = "", col3: str = ""):
-        try:
-            if not col2 and not col3:
-                grouped = self.df.groupby([col1])
-                self.GetStats(grouped)
-            elif col2 and not col3:
-                grouped = self.df.groupby([col1, col2])
-                self.GetStats(grouped)
-            elif col2 and col3:
-                grouped = self.df.groupby([col1, col2, col3])
-                self.GetStats(grouped)
-            elif not col2 and col3:
-                grouped = self.df.groupby([col1, col3])
-                self.GetStats(grouped)
-        except Exception as ex:
-            print(str(ex))
-        return
-
-    def GetCount(self, col: str) -> int:
-        if col:
-            return self.df[col].value_counts()
-        return 0
-
-    def GetStats(self, dfStats):
-        print("Mean : %r" %(dfStats.mean()))
-        print("Variance: %r" % (dfStats.var()))
-        print("Std Dev: %r" % (dfStats.std()))
+def showStats(dafr: pd.DataFrame) -> None:
+    print('Mean: %r' % (dafr.mean()))
+    print('Variance:%r' % (dafr.var()))
+    print('Std Dev: %r' % (dafr.std()))
+    return
 
 
 
 def main():
-    d = Data()
+    df = None
+    
+    while True:
+        df = openFile()
+        if df is None:
+            continue
+        else:
+            break
+    print(df.info())
+    df.columns = df.columns.str.strip()
     while True:
         option = input("Choose an option:\n1 - Open New File\n2 - Get Head of file\n"+
                        "3 - Get Info on file\n4 - Group between 1 and 3 column\n"+
                        "5 - Get count of specified column\n6 - Exit\n")
         if option == "1":
-            file = input('Enter the file path of the csv file:\n')
-            d.OpenFile(file)
-            continue
+            df = openFile()
+            df.columns = df.columns.str.strip()
 
         elif option == "2":
-            count = input("Enter number of rows to retrieve or enter 0\n")
-            d.Head(int(count))
-            continue
+            count = input('Specify the number of rows to retrieve or enter 0\n')
+            if count != int(0):
+                print(df.head(int(count)))
+            print(df.head())
 
         elif option == "3":
-            d.Info()
+            print(df.info())
 
         elif option == "4":
-            cols = input("Enter between 1 and 3 columns separated by a comma\n")
+            cols = input('Enter between 1 and 3 columns separated by a comma\n')
             group = cols.split(',')
-            if len(group) == 1:
-                d.GroupCols(group[0])
-            elif len(group) < 3:
-                d.GroupCols(group[0], group[1])
-            else:
-                d.GroupCols(group[0], group[1], group[2])
+            df = groupCols(df, group)
+            showStats(df)
 
         elif option == "5":
-                col = input("Enter column name to get count of\n")
-                print(d.GetCount(col))
+            col = input('Enter column name to get count of\n')
+            print(df[col].value_counts())
 
         elif option == "6":
             exit()
 
         else:
             print("Could not understand option. Enter numeric value\n")
-            
+
+
 
 
 
